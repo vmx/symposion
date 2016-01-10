@@ -24,8 +24,8 @@ class SponsorApplicationForm(forms.ModelForm):
         fields = [
             "name",
             "external_url",
-            "contact_name",
-            "contact_email",
+#            "contact_name",
+#            "contact_email",
             "level"
         ]
 
@@ -43,8 +43,8 @@ class SponsorDetailsForm(forms.ModelForm):
         fields = [
             "name",
             "external_url",
-            "contact_name",
-            "contact_email"
+#            "contact_name",
+#            "contact_email"
         ]
 
 
