@@ -26,7 +26,7 @@ class Speaker(models.Model):
                                         " conference program."))
     biography = models.TextField(blank=True, help_text=_(
             "The biography won't be public, it may only be used by the "
-            "session chairs it introduce you before your talk. Edit using "
+            "session chairs to introduce you before your talk. Edit using "
             "<a href=\"http://daringfireball.net/projects/markdown/syntax\" "
             "target='_blank'>"
             "Markdown</a>."), verbose_name=_("Biography"))
