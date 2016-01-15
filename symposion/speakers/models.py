@@ -40,6 +40,12 @@ class Speaker(models.Model):
         editable=False,
         verbose_name=_("Created")
     )
+    company = models.CharField(
+        verbose_name=_("Company"),
+        max_length=200,
+        help_text=_("The company/organisation/institution you'll be "
+                    "representing at the conference."),
+        blank=True)
 
     class Meta:
         ordering = ['name']
