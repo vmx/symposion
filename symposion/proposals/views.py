@@ -82,7 +82,7 @@ def proposal_submit_kind(request, kind_slug):
     form_class = get_form(settings.PROPOSAL_FORMS[kind_slug])
 
     if request.method == "POST":
-        form = form_class(request.POST)
+        form = form_class(request.POST, request.FILES)
         if form.is_valid():
             proposal = form.save(commit=False)
             proposal.kind = kind
@@ -201,7 +201,7 @@ def proposal_edit(request, pk):
     form_class = get_form(settings.PROPOSAL_FORMS[proposal.kind.slug])
 
     if request.method == "POST":
-        form = form_class(request.POST, instance=proposal)
+        form = form_class(request.POST, request.FILES, instance=proposal)
         if form.is_valid():
             form.save()
             if hasattr(proposal, "reviews"):
