@@ -10,6 +10,7 @@ from symposion.proposals.models import SupportingDocument
 
 
 class AddSpeakerForm(forms.Form):
+    required_css_class = 'required'
 
     email = forms.EmailField(
         label=_("Email address of new speaker (use their email address, not yours)")
@@ -33,6 +34,7 @@ class AddSpeakerForm(forms.Form):
 
 
 class SupportingDocumentCreateForm(forms.ModelForm):
+    required_css_class = 'required'
 
     class Meta:
         model = SupportingDocument

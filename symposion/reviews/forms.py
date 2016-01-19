@@ -6,6 +6,8 @@ from symposion.reviews.models import Review, Comment, ProposalMessage, VOTES
 
 
 class ReviewForm(forms.ModelForm):
+    required_css_class = 'required'
+
     class Meta:
         model = Review
         fields = ["vote", "comment"]
@@ -19,18 +21,24 @@ class ReviewForm(forms.ModelForm):
 
 
 class ReviewCommentForm(forms.ModelForm):
+    required_css_class = 'required'
+
     class Meta:
         model = Comment
         fields = ["text"]
 
 
 class SpeakerCommentForm(forms.ModelForm):
+    required_css_class = 'required'
+
     class Meta:
         model = ProposalMessage
         fields = ["message"]
 
 
 class BulkPresentationForm(forms.Form):
+    required_css_class = 'required'
+
     talk_ids = forms.CharField(
         label=_("Talk ids"),
         max_length=500,
