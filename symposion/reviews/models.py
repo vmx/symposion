@@ -116,7 +116,7 @@ class Review(models.Model):
     # No way to encode "-0" vs. "+0" into an IntegerField, and I don't feel
     # like some complicated encoding system.
     vote = models.CharField(max_length=2, blank=True, choices=VOTES.CHOICES, verbose_name=_("Vote"))
-    comment = models.TextField(verbose_name=_("Comment"))
+    comment = models.TextField(verbose_name=_("Optional comment for final review"), blank=True)
     comment_html = models.TextField(blank=True)
     submitted_at = models.DateTimeField(default=datetime.now, editable=False, verbose_name=_("Submitted at"))
 
