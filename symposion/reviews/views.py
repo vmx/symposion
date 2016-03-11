@@ -1,3 +1,5 @@
+import hashlib
+
 from django.core.mail import send_mass_mail
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
@@ -22,13 +24,24 @@ from symposion.reviews.models import (
 )
 
 
+def hash_item(item, salt):
+    '''Hash an item with additional salt.'''
+    m = hashlib.md5()
+    m.update(str(item) + str(salt))
+    return m.digest()
+
+
 def access_not_permitted(request):
     return render(request, "symposion/reviews/access_not_permitted.html")
 
 
 def proposals_generator(request, queryset, user_pk=None, check_speaker=True):
+    # Sort the talks randomly for every user, but for this user always in the
+    # same way. Even subsets of the list have the same order.
+    proposals = list(queryset)
+    proposals.sort(key=lambda x: hash_item(x, request.user.username))
 
-    for obj in queryset:
+    for obj in proposals:
         # @@@ this sucks; we can do better
         if check_speaker:
             if request.user in [s.user for s in obj.speakers()]:
