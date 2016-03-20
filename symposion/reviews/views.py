@@ -97,7 +97,7 @@ def review_section(request, section_slug, assigned=False, reviewed="all"):
         queryset = queryset.select_related("result").select_subclasses()
         reviewed = "all_reviews"
     elif reviewed == "reviewed":
-        queryset = queryset.filter(reviews__user=request.user)
+        queryset = queryset.filter(reviews__user=request.user).distinct()
         reviewed = "user_reviewed"
     else:
         queryset = queryset.exclude(reviews__user=request.user)
