@@ -208,6 +208,24 @@ def review_detail(request, pk):
         if request.user in speakers:
             return access_not_permitted(request)
 
+        # Get all proposals and sort them the same way as for displaying
+        # them in the overview view
+        queryset = ProposalBase.objects.filter(kind__section=proposal.kind.section)
+        proposals = list(queryset)
+        proposals.sort(key=lambda x: hash_item(x, request.user.username))
+        next_proposal_pk = None
+        proposals_iter = iter(proposals)
+        # Get the primary key of the next proposal in the list, this way we
+        # can redirect to the next proposal when the vote on the current
+        # proposal was submitted
+        for proposal in proposals_iter:
+            if proposal.pk == int(pk):
+                try:
+                    next_proposal_pk = proposals_iter.next().pk
+                except StopIteration:
+                    next_proposal_pk = None
+                break
+
         if "vote_submit" in request.POST:
             review_form = ReviewForm(request.POST)
             if review_form.is_valid():
@@ -217,7 +235,11 @@ def review_detail(request, pk):
                 review.proposal = proposal
                 review.save()
 
-                return redirect(request.path)
+                if next_proposal_pk:
+                    return redirect("review_detail", pk=next_proposal_pk)
+                else:
+                    return redirect("review_section",
+                                    section_slug=proposal.kind.section.slug)
             else:
                 message_form = SpeakerCommentForm()
         elif "message_submit" in request.POST:
@@ -241,7 +263,11 @@ def review_detail(request, pk):
                             context=ctx
                         )
 
-                return redirect(request.path)
+                if next_proposal_pk:
+                    return redirect("review_detail", pk=next_proposal_pk)
+                else:
+                    return redirect("review_section",
+                                    section_slug=proposal.kind.section.slug)
             else:
                 initial = {}
                 if latest_vote:
