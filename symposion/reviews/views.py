@@ -84,7 +84,7 @@ def review_section(request, section_slug, assigned=False, reviewed="all"):
         return access_not_permitted(request)
 
     section = get_object_or_404(ProposalSection, section__slug=section_slug)
-    queryset = ProposalBase.objects.filter(kind__section=section.section)
+    queryset = ProposalBase.objects.filter(kind__section=section.section).filter(cancelled=0)
 
     if assigned:
         assignments = ReviewAssignment.objects.filter(user=request.user)\
@@ -210,7 +210,7 @@ def review_detail(request, pk):
 
         # Get all proposals and sort them the same way as for displaying
         # them in the overview view
-        queryset = ProposalBase.objects.filter(kind__section=proposal.kind.section)
+        queryset = ProposalBase.objects.filter(kind__section=proposal.kind.section).filter(cancelled=0)
         proposals = list(queryset)
         proposals.sort(key=lambda x: hash_item(x, request.user.username))
         next_proposal_pk = None
