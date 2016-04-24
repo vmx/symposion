@@ -30,6 +30,8 @@ from symposion.proposals.forms import (
     AddSpeakerForm, SupportingDocumentCreateForm
 )
 
+from foss4g.proposals.models import TalkProposal
+
 
 def get_form(name):
     dot = name.rindex(".")
@@ -402,3 +404,22 @@ def document_delete(request, pk):
         document.delete()
 
     return redirect("proposal_detail", proposal_pk)
+
+
+@login_required
+def proposal_export(request, pk=None):
+    if not request.user.is_superuser:
+        return access_not_permitted(request)
+
+    if pk is None:
+        pks = request.GET['ids'].split(',')
+    else:
+        pks = [pk]
+
+    queryset = (TalkProposal.objects.all().filter(cancelled=0)
+                .filter(id__in=pks).order_by('id'))
+
+    ctx = {
+        "proposals": queryset,
+    }
+    return render(request, "symposion/proposals/proposal_export.html", ctx)
