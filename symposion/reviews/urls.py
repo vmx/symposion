@@ -12,6 +12,8 @@ urlpatterns = patterns(
     url(r"^section/(?P<section_slug>[\w\-]+)/list/(?P<user_pk>\d+)/$", "review_list", name="review_list_user"),
     url(r"^section/(?P<section_slug>[\w\-]+)/admin/$", "review_admin", name="review_admin"),
     url(r"^section/(?P<section_slug>[\w\-]+)/admin/accept/$", "review_bulk_accept", name="review_bulk_accept"),
+    # Possible review statuses are "accepted", "rejected", "undecided" and "standby"
+    url(r"^section/(?P<section_slug>[\w\-]+)/admin/(?P<status>\w+)/$", "review_bulk_status", name="review_bulk_status"),
     url(r"^section/(?P<section_slug>[\w\-]+)/notification/(?P<status>\w+)/$", "result_notification", name="result_notification"),
     url(r"^section/(?P<section_slug>[\w\-]+)/notification/(?P<status>\w+)/prepare/$", "result_notification_prepare", name="result_notification_prepare"),
     url(r"^section/(?P<section_slug>[\w\-]+)/notification/(?P<status>\w+)/send/$", "result_notification_send", name="result_notification_send"),

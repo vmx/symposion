@@ -445,6 +445,32 @@ def review_bulk_accept(request, section_slug):
 
 
 @login_required
+def review_bulk_status(request, section_slug, status):
+    '''Set the status of several talks at once.
+
+    Possible statuses are "accepted", "rejected", "undecided" and "standby".
+    '''
+    if not request.user.has_perm("reviews.can_manage_%s" % section_slug):
+        return access_not_permitted(request)
+    if request.method == "POST":
+        form = BulkPresentationForm(request.POST)
+        if form.is_valid():
+            talk_ids = form.cleaned_data["talk_ids"].split(",")
+            talks = ProposalBase.objects.filter(id__in=talk_ids).select_related("result")
+            for talk in talks:
+                talk.result.status = status
+                talk.result.save()
+            return redirect("review_section", section_slug=section_slug)
+    else:
+        form = BulkPresentationForm()
+
+    return render(request, "symposion/reviews/review_bulk_status.html", {
+        "form": form,
+        "status": status,
+    })
+
+
+@login_required
 def result_notification(request, section_slug, status):
     if not request.user.has_perm("reviews.can_manage_%s" % section_slug):
         return access_not_permitted(request)
