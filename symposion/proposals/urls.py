@@ -21,4 +21,7 @@ urlpatterns = patterns(
     url(r"^document/(\d+)/([^/]+)$", "document_download", name="proposal_document_download"),
     # Export several proposals in one page, given by query parameter `ids`
     url(r"^export/$", "proposal_export", name="proposal_export"),
+    url(r"^frab/events$", "proposal_events_export_frab", name="proposal_events_export_frab"),
+    url(r"^frab/event_people$", "proposal_event_people_export_frab", name="proposal_event_people_export_frab"),
+    url(r"^frab/people$", "proposal_people_export_frab", name="proposal_people_export_frab"),
 )

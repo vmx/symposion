@@ -1,7 +1,13 @@
 from __future__ import unicode_literals
+import datetime
 import hashlib
 import random
 import sys
+import uuid
+
+import markdown
+import ruamel.yaml
+import yaml
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -31,6 +37,13 @@ from symposion.proposals.forms import (
 )
 
 from foss4g.proposals.models import TalkProposal
+
+
+# Frab expects IDs for all sorts of things to be unique. In order to not
+# clash with any existing conference, use an offset which will be added
+# to any ID we use
+FOSS4G_ID_OFFSET = 1000
+CONFERENCE_ID = 10
 
 
 def get_form(name):
@@ -423,3 +436,170 @@ def proposal_export(request, pk=None):
         "proposals": queryset,
     }
     return render(request, "symposion/proposals/proposal_export.html", ctx)
+
+
+@login_required
+def proposal_events_export_frab(request, pk=None):
+    if not request.user.is_superuser:
+        return access_not_permitted(request)
+
+    if pk is None:
+        pks = request.GET['ids'].split(',')
+    else:
+        pks = [pk]
+
+    queryset = (ProposalBase.objects.all().select_subclasses()
+                .filter(cancelled=0, id__in=pks).order_by('id'))
+
+    proposals = []
+    for proposal in queryset:
+        try:
+            do_not_record = not proposal.recording_release
+        except AttributeError:
+            do_not_record = None
+
+        proposals.append({
+                'id': proposal.id + FOSS4G_ID_OFFSET,
+                'conference_id': CONFERENCE_ID,
+                'title': proposal.title,
+                'subtitle': '',
+                'event_type': 'lecture',
+                'time_slots': 2,
+                'state': 'confirmed',
+                'language': 'en',
+                'start_time': None,
+                'abstract': markdown.markdown(
+                    proposal.abstract, extensions=["linkify"]),
+                'description': '',
+                'public': True,
+                'logo_file_name': None,
+                'logo_content_type': None,
+                'logo_file_size': None,
+                'logo_updated_at': None,
+                'track_id': None,
+                'room_id': None,
+                'created_at': datetime.datetime.now(),
+                'updated_at': datetime.datetime.now(),
+                'average_rating': None,
+                'event_ratings_count': 0,
+                'note': '',
+                'submission_note': '',
+                'speaker_count': len(list(proposal.speakers())),
+                'event_feedbacks_count': 0,
+                'average_feedback': None,
+                'guid': str(uuid.UUID(int=proposal.id)),
+                'do_not_record': do_not_record,
+                'recording_license': '',
+                'number_of_repeats': 1,
+                'other_locations': None,
+                'methods': None,
+                'resources': None,
+                'target_audience_experience': None,
+                'target_audience_experience_text': None,
+                })
+
+    return HttpResponse(
+        # Use ruamel.yaml in order to get empty scalars as values
+        # http://stackoverflow.com/a/30136595 (2016-05-13)
+        ruamel.yaml.dump(proposals, Dumper=ruamel.yaml.RoundTripDumper),
+        content_type="text/plain"
+    )
+
+
+@login_required
+def proposal_event_people_export_frab(request, pk=None):
+    '''Export the speakers of certain proposals.
+    '''
+    if not request.user.is_superuser:
+        return access_not_permitted(request)
+
+    if pk is None:
+        pks = request.GET['ids'].split(',')
+    else:
+        pks = [pk]
+
+    queryset = (ProposalBase.objects.all().select_subclasses()
+                .filter(cancelled=0, id__in=pks).order_by('id'))
+
+    speakers = []
+    # We need an unique ID for every person record
+    people_id = 0
+    for proposal in queryset:
+        for i, speaker in enumerate(proposal.speakers()):
+            # If a speaker was invited but didn't respond, then his
+            # name is empty
+            if speaker.name == '':
+                continue
+
+            # First person in the list of speakers is also the submitter
+            if i == 0:
+                speakers.append({
+                        'id': people_id + FOSS4G_ID_OFFSET,
+                        'event_id': proposal.id + FOSS4G_ID_OFFSET,
+                        'person_id': speaker.id + FOSS4G_ID_OFFSET,
+                        'event_role': 'submitter',
+                        'role_state': None,
+                        'comment': None,
+                        'created_at': datetime.datetime.now(),
+                        'updated_at': datetime.datetime.now(),
+                        'confirmation_token': None})
+                people_id += 1
+
+            speakers.append({
+                    'id': people_id + FOSS4G_ID_OFFSET,
+                    'event_id': proposal.id + FOSS4G_ID_OFFSET,
+                    'person_id': speaker.id + FOSS4G_ID_OFFSET,
+                    'event_role': 'speaker',
+                    'role_state': None,
+                    'comment': None,
+                    'created_at': datetime.datetime.now(),
+                    'updated_at': datetime.datetime.now(),
+                    'confirmation_token': None})
+            people_id += 1
+
+    return HttpResponse(
+        # Use ruamel.yaml in order to get empty scalars as values
+        # http://stackoverflow.com/a/30136595 (2016-05-13)
+        ruamel.yaml.dump(speakers, Dumper=ruamel.yaml.RoundTripDumper),
+        content_type="text/plain"
+    )
+
+
+@login_required
+def proposal_people_export_frab(request):
+    '''Export all the speaker from the system.
+    '''
+    if not request.user.is_superuser:
+        return access_not_permitted(request)
+
+    queryset = Speaker.objects.all().exclude(name='').order_by('id')
+
+    speakers = []
+    for speaker in queryset:
+        speakers.append({
+                'id': speaker.id + FOSS4G_ID_OFFSET,
+                'first_name': '',
+                'last_name': '',
+                'public_name': speaker.name,
+                'email': speaker.email,
+                'email_public': False,
+                'gender': None,
+                'avatar_file_name': None,
+                'avatar_content_type': None,
+                'avatar_file_size': None,
+                'avatar_updated_at': None,
+                'abstract': markdown.markdown(
+                    speaker.biography, extensions=["linkify"]),
+                'description': '',
+                'created_at': datetime.datetime.now(),
+                'updated_at': datetime.datetime.now(),
+                'user_id': None,
+                'note': '',
+                'include_in_mailings': False})
+
+    return HttpResponse(
+        # Use ruamel.yaml in order to get empty scalars as values
+        # http://stackoverflow.com/a/30136595 (2016-05-13)
+        ruamel.yaml.dump(speakers, Dumper=ruamel.yaml.RoundTripDumper),
+        content_type="text/plain"
+    )
