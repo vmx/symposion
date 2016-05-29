@@ -43,7 +43,7 @@ from foss4g.proposals.models import TalkProposal
 # clash with any existing conference, use an offset which will be added
 # to any ID we use
 FOSS4G_ID_OFFSET = 1000
-CONFERENCE_ID = 10
+CONFERENCE_ID = 2
 
 
 def get_form(name):
