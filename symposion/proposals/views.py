@@ -36,7 +36,7 @@ from symposion.proposals.forms import (
     AddSpeakerForm, SupportingDocumentCreateForm
 )
 
-from foss4g.proposals.models import TalkProposal
+from foss4g.proposals.models import TalkProposal, WorkshopProposal
 
 
 # Frab expects IDs for all sorts of things to be unique. In order to not
@@ -458,12 +458,16 @@ def proposal_events_export_frab(request, pk=None):
         except AttributeError:
             do_not_record = None
 
+        event_type = 'lecture'
+        if isinstance(proposal, WorkshopProposal):
+            event_type = 'workshop'
+
         proposals.append({
                 'id': proposal.id + FOSS4G_ID_OFFSET,
                 'conference_id': CONFERENCE_ID,
                 'title': proposal.title,
                 'subtitle': '',
-                'event_type': 'lecture',
+                'event_type': event_type,
                 'time_slots': 2,
                 'state': 'confirmed',
                 'language': 'en',
