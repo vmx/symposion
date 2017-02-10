@@ -435,6 +435,10 @@ def proposal_export(request, pk=None):
     ctx = {
         "proposals": queryset,
     }
+    for proposal in queryset:
+        for speaker in proposal.speakers():
+            print(str(speaker))
+
     return render(request, "symposion/proposals/proposal_export.html", ctx)
 
 
@@ -462,6 +466,9 @@ def proposal_events_export_frab(request, pk=None):
         if isinstance(proposal, WorkshopProposal):
             event_type = 'workshop'
 
+        description = proposal.abstract
+        if proposal.foss_is_links:
+            description += "\n\nLinks to project: " + proposal.foss_is_links
         proposals.append({
                 'id': proposal.id + FOSS4G_ID_OFFSET,
                 'conference_id': CONFERENCE_ID,
@@ -473,7 +480,7 @@ def proposal_events_export_frab(request, pk=None):
                 'language': 'en',
                 'start_time': None,
                 'abstract': markdown.markdown(
-                    proposal.abstract, extensions=["linkify"]),
+                    description, extensions=["linkify"]),
                 'description': '',
                 'public': True,
                 'logo_file_name': None,
@@ -580,11 +587,14 @@ def proposal_people_export_frab(request):
 
     speakers = []
     for speaker in queryset:
+        speaker_name = speaker.name
+        if speaker.company:
+            speaker_name += ' ({})'.format(speaker.company)
         speakers.append({
                 'id': speaker.id + FOSS4G_ID_OFFSET,
                 'first_name': '',
                 'last_name': '',
-                'public_name': speaker.name,
+                'public_name': speaker_name,
                 'email': speaker.email,
                 'email_public': False,
                 'gender': None,
